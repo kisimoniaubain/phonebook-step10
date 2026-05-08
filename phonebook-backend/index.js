@@ -8,7 +8,7 @@ const path = require('path')
 
 const app = express()
 const DB_PATH = path.join(__dirname, 'persons-db.json')
-const FRONTEND_DIST_PATH = path.join(__dirname, '..', 'phonebook-frontend', 'dist')
+const FRONTEND_DIST_PATH = path.join(__dirname, 'dist')
 
 const readPersons = () => JSON.parse(fs.readFileSync(DB_PATH, 'utf8'))
 
@@ -81,17 +81,11 @@ const unknownApiEndpoint = (_req, res) => {
 
 app.use('/api', unknownApiEndpoint)
 
-if (fs.existsSync(FRONTEND_DIST_PATH)) {
-  app.use(express.static(FRONTEND_DIST_PATH))
+app.use(express.static(FRONTEND_DIST_PATH))
 
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      return next()
-    }
-
-    return res.sendFile(path.join(FRONTEND_DIST_PATH, 'index.html'))
-  })
-}
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(FRONTEND_DIST_PATH, 'index.html'))
+})
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
