@@ -8,6 +8,7 @@ const path = require('path')
 
 const app = express()
 const DB_PATH = path.join(__dirname, 'persons-db.json')
+const FRONTEND_DIST_PATH = path.join(__dirname, '..', 'phonebook-frontend', 'dist')
 
 const readPersons = () => JSON.parse(fs.readFileSync(DB_PATH, 'utf8'))
 
@@ -19,10 +20,6 @@ morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :url :status :response-time ms :body'))
-
-app.get('/', (_req, res) => {
-  res.send('Phonebook backend is running')
-})
 
 app.get('/info', (_req, res) => {
   const persons = readPersons()
@@ -78,11 +75,23 @@ app.post('/api/persons', (req, res) => {
   return res.status(201).json(person)
 })
 
-const unknownEndpoint = (_req, res) => {
-  res.status(404).json({ error: 'unknown endpoint' })
+const unknownApiEndpoint = (_req, res) => {
+  res.status(404).json({ error: 'unknown api endpoint' })
 }
 
-app.use(unknownEndpoint)
+app.use('/api', unknownApiEndpoint)
+
+if (fs.existsSync(FRONTEND_DIST_PATH)) {
+  app.use(express.static(FRONTEND_DIST_PATH))
+
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next()
+    }
+
+    return res.sendFile(path.join(FRONTEND_DIST_PATH, 'index.html'))
+  })
+}
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
