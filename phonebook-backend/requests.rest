@@ -1,0 +1,20 @@
+### Health
+GET http://localhost:3001/
+
+### Get all persons
+GET http://localhost:3001/api/persons
+
+### Get one person
+GET http://localhost:3001/api/persons/1
+
+### Add person
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Mary Poppendieck",
+  "number": "39-23-6423122"
+}
+
+### Delete person
+DELETE http://localhost:3001/api/persons/1
