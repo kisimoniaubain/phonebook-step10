@@ -3,6 +3,24 @@ import axios from 'axios'
 
 const normalizeBaseUrl = (value) => value.replace(/\/$/, '')
 
+const inferRenderBackendOrigin = (origin) => {
+  try {
+    const url = new URL(origin)
+    const host = url.hostname
+    const inferredHost = host
+      .replace('-frontend.', '-backend.')
+      .replace('.frontend.', '.backend.')
+
+    if (inferredHost === host) {
+      return ''
+    }
+
+    return `${url.protocol}//${inferredHost}`
+  } catch {
+    return ''
+  }
+}
+
 const resolveApiBaseUrl = () => {
   const isBrowser = typeof window !== 'undefined'
   const isLocalhostBrowser =
@@ -28,6 +46,11 @@ const resolveApiBaseUrl = () => {
   }
 
   if (isBrowser && !isLocalhostBrowser) {
+    const inferredOrigin = inferRenderBackendOrigin(window.location.origin)
+    if (inferredOrigin) {
+      return normalizeBaseUrl(inferredOrigin)
+    }
+
     return normalizeBaseUrl(window.location.origin)
   }
 
