@@ -4,13 +4,30 @@ import axios from 'axios'
 const normalizeBaseUrl = (value) => value.replace(/\/$/, '')
 
 const resolveApiBaseUrl = () => {
+  const isBrowser = typeof window !== 'undefined'
+  const isLocalhostBrowser =
+    isBrowser &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
   const envBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
   if (envBaseUrl) {
-    return normalizeBaseUrl(envBaseUrl)
+    const envHost = (() => {
+      try {
+        return new URL(envBaseUrl).hostname
+      } catch {
+        return ''
+      }
+    })()
+
+    const envIsLocalhost = envHost === 'localhost' || envHost === '127.0.0.1'
+
+    // Ignore localhost env values when app is deployed.
+    if (!(envIsLocalhost && !isLocalhostBrowser)) {
+      return normalizeBaseUrl(envBaseUrl)
+    }
   }
 
-  // In deployed/browser environments, default to same-origin API.
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+  if (isBrowser && !isLocalhostBrowser) {
     return normalizeBaseUrl(window.location.origin)
   }
 
