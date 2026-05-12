@@ -1,7 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const normalizeBaseUrl = (value) => value.replace(/\/$/, '')
+
+const resolveApiBaseUrl = () => {
+  const envBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+  if (envBaseUrl) {
+    return normalizeBaseUrl(envBaseUrl)
+  }
+
+  // In deployed/browser environments, default to same-origin API.
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return normalizeBaseUrl(window.location.origin)
+  }
+
+  return 'http://localhost:3001'
+}
+
+const apiBaseUrl = resolveApiBaseUrl()
 
 function App() {
   const [persons, setPersons] = useState([])
